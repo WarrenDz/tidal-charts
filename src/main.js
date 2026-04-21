@@ -19,7 +19,7 @@ const chartCoordinates = {
 };
 
 // D3 chart dimensions
-const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+const margin = { top: 12, right: 12, bottom: 12, left: 12 };
 
 // Aspect ratio configuration for each chart type
 const aspectRatios = {
@@ -268,15 +268,6 @@ function attachTooltip(selection) {
         tooltip = d3.select('#chart')
             .append('div')
             .attr('class', 'tooltip')
-            .style('opacity', 0)
-            .style('position', 'absolute')
-            .style('background-color', 'white')
-            .style('border', 'solid')
-            .style('border-width', '1px')
-            .style('border-radius', '2px')
-            .style('padding', '5px')
-            .style('pointer-events', 'none')
-            .style('font-size', '12px');
     }
 
     selection

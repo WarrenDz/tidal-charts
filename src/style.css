@@ -16,3 +16,27 @@ html, body {
 #chart svg {
     display: block;
 }
+
+.tooltip {
+    position: absolute;
+    opacity: 0 ;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 5px;
+    pointer-events: none;
+    font-size: 12px;
+    font-family: "Roboto", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings:
+    "wdth" 100;
+}
+
+.roboto {
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}

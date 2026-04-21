@@ -6,6 +6,9 @@ let data = null;
 let categories = null;
 let svg = null;
 let currentHash = 'scatter';
+let width = 900;
+let height = 500;
+const chartDiv = document.getElementById('chart');
 
 // Configuration
 // Chart coordiantes
@@ -16,14 +19,19 @@ const chartCoordinates = {
 };
 
 // D3 chart dimensions
-const width = 900;
-const height = 500;
-const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+
+// Aspect ratio configuration for each chart type
+const aspectRatios = {
+    scatter: 16 / 9,   // landscape
+    packed: 16 / 9,         // square
+    web: 16 / 9         // slightly wider
+};
 
 // Animation config
 const animationProperties = {
-    duration: 5000,
-    delay: 5000
+    duration: 2500,
+    delay: 2500
 };
 
 // Taxon category colours
@@ -75,46 +83,73 @@ async function loadData() {
     console.log('Categories:', categories);
     console.log('Data sample:', data.slice(0, 5));
 
-    // Initialize chart and setup hash listener
+    // Initialize chart and setup listeners
     initSVG();
-    handleHasChange();
-    window.addEventListener('hashchange', handleHasChange);
-    // *re-render on resize?
+    redraw();
+    window.addEventListener('hashchange', () => redraw());
+    window.addEventListener('resize', () => redraw());
 }
 
-// Initialize chart container
+// Initialize SVG container
 function initSVG() {
-    svg = d3.create('svg')
+    svg = d3.select(chartDiv).append('svg');
+}
+
+// Extract container dimensions and redraw
+function redraw() {
+    // Get the container dimensions from CSS
+    const containerWidth = chartDiv.clientWidth;
+    const containerHeight = chartDiv.clientHeight;
+    
+    // Calculate dimensions maintaining aspect ratio
+    const aspectRatio = aspectRatios[currentHash] || 16 / 9;
+    let newWidth, newHeight;
+    
+    if (containerWidth / aspectRatio < containerHeight) {
+        // Width is limiting
+        newWidth = containerWidth;
+        newHeight = newWidth / aspectRatio;
+    } else {
+        // Height is limiting
+        newHeight = containerHeight;
+        newWidth = newHeight * aspectRatio;
+    }
+    
+    width = Math.floor(newWidth);
+    height = Math.floor(newHeight);
+    
+    // Set SVG dimensions
+    svg
+        .attr('width', width)
+        .attr('height', height)
         .attr('viewBox', [0, 0, width, height]);
     
-    d3.select('#chart').append(() => svg.node());
-}
-
-// Hash change handler
-function handleHasChange() {
-    const previousHash = currentHash;
+    // Get current and new hash
     const newHash = window.location.hash.slice(1) || 'scatter';
-    console.log('Hash changed from:', previousHash, 'to:', newHash);
-
-    // Determine transition and call appropriate function
+    const previousHash = currentHash;
+    
+    // Determine transition type and render accordingly
     const transition = `${previousHash}-${newHash}`;
     
     if (transition === 'packed-web') {
-        // packed -> web transition: clear SVG and preserve for animation
+        // packed -> web transition: preserve animation
         svg.selectAll('*').remove();
+        currentHash = newHash;
         renderPackedToWeb();
     } else if (transition === 'web-packed') {
-        // web -> packed transition
+        // web -> packed transition: preserve animation
+        // svg.selectAll('*').remove();
+        currentHash = newHash;
         renderWebToPacked();
     } else {
-        // All other transitions: clear SVG and render based on new hash
+        // All other transitions: clear and render based on new hash
         svg.selectAll('*').remove();
+        currentHash = newHash;
+        
         if (newHash === 'scatter') renderScatter();
         else if (newHash === 'packed') renderScatterToPacked();
         else if (newHash === 'web') renderPackedToWeb();
     }
-    
-    currentHash = newHash;
 }
 
 // Helper functions

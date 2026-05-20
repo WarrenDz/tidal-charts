@@ -4,6 +4,8 @@ import * as d3 from 'd3';
 // Globals
 let data = null;
 let categories = null;
+let nodes_data = null;
+let links_data = null;
 let svg = null;
 let currentHash = 'scatter';
 let width = 900;
@@ -51,18 +53,6 @@ const categoryColors = {
     'Other': '#d4d4d4'
 };
 
-// Food web configuration
-const foodWebConnections = {
-    // Format: 'predator_name': ['prey_name1', 'prey_name2', ...]
-    'Glaucous-winged Gull': ['Northern Kelp Crab', 'Checkered Periwinkle', 'California Mussel', 'Ochre Sea Star','Wooly Sculpin', 'Wrinkled Purple Whelk'],
-    'Ochre Sea Star': ['Goose Barnacle', 'California Mussel', 'Rough Limpet', 'Rough Keyhole Limpet'],
-    'Western Sandpiper': ['Bay Ghost Shrimp', 'California Mussel', 'Checkered Periwinkle'],
-    'Wooly Sculpin': ['Rough Keyhole Limpet'],
-    'Northern Kelp Crab': ['California Mussel'],
-    'Checkered Periwinkle': ['Turkish washcloth'],
-    'Wrinkled Purple Whelk': ['California Mussel']
-};
-
 // Species images configuration
 const speciesImages = {
     'Ochre Sea Star': 'assets/starfish.jpeg'
@@ -75,6 +65,13 @@ async function loadData() {
 
     console.log('Categories:', categories);
     console.log('Data sample:', data.slice(0, 5));
+
+    // Load food web data
+    nodes_data = await d3.csv('assets/foodWeb_nodes.csv');
+    links_data = await d3.csv('assets/foodWeb_links.csv');
+    console.log('Food web nodes:', nodes_data);
+    console.log('Food web links:', links_data);
+
 
     // Initialize chart and setup listeners
     initSVG();
@@ -93,11 +90,11 @@ function redraw() {
     // Get the container dimensions from CSS
     const containerWidth = chartDiv.clientWidth;
     const containerHeight = chartDiv.clientHeight;
-    
+
     // Calculate dimensions maintaining aspect ratio
     const aspectRatio = aspectRatios[currentHash] || 16 / 9;
     let newWidth, newHeight;
-    
+
     if (containerWidth / aspectRatio < containerHeight) {
         // Width is limiting
         newWidth = containerWidth;
@@ -107,23 +104,23 @@ function redraw() {
         newHeight = containerHeight;
         newWidth = newHeight * aspectRatio;
     }
-    
+
     width = Math.floor(newWidth);
     height = Math.floor(newHeight);
-    
+
     // Set SVG dimensions
     svg
         .attr('width', width)
         .attr('height', height)
         .attr('viewBox', [0, 0, width, height]);
-    
+
     // Get current and new hash
     const newHash = window.location.hash.slice(1) || 'scatter';
     const previousHash = currentHash;
-    
+
     // Determine transition type and render accordingly
     const transition = `${previousHash}-${newHash}`;
-    
+
     if (transition === 'packed-web') {
         // packed -> web transition: preserve animation
         svg.selectAll('*').remove();
@@ -138,7 +135,7 @@ function redraw() {
         // All other transitions: clear and render based on new hash
         svg.selectAll('*').remove();
         currentHash = newHash;
-        
+
         if (newHash === 'scatter') renderScatter();
         else if (newHash === 'packed') renderScatterToPacked();
         else if (newHash === 'web') renderPackedToWeb();
@@ -156,12 +153,12 @@ function createColorScale() {
 function createPackedLayout(sortOption = null) {
     // Group data by common_name and count
     const nested = d3.rollups(data, v => v.length, d => d.common_name)
-        .map(([name, count]) => ({ 
-            name, 
+        .map(([name, count]) => ({
+            name,
             value: count,
             category: data.find(d => d.common_name === name).taxon_category_name
         }));
-    
+
     // Sort if option provided
     if (sortOption === 'count') {
         nested.sort((a, b) => b.value - a.value);
@@ -185,116 +182,15 @@ function createPackedLayout(sortOption = null) {
     return packed;
 }
 
-function getSpeciesInWeb() {
-    const speciesInWeb = new Set();
-    Object.entries(foodWebConnections).forEach(([predator, preyArray]) => {
-        if (predator && predator.trim()) {
-            speciesInWeb.add(predator);
+function getSpeciesInGraph() {
+    const speciesInGraph = new Set();
+    nodes_data.forEach(node => {
+        if (node.common_name && node.common_name.trim()) {
+            speciesInGraph.add(node.common_name);
         }
-        preyArray.forEach(prey => {
-            if (prey && prey.trim()) {
-                speciesInWeb.add(prey);
-            }
-        });
     });
-    return speciesInWeb;
-}
-
-function buildFoodWebHierarchyNode(predatorName, visited = new Set()) {
-    if (visited.has(predatorName)) {
-        return null;
-    }
-    visited.add(predatorName);
-    
-    const speciesData = data.find(d => d.common_name === predatorName);
-    const count = data.filter(d => d.common_name === predatorName).length;
-    
-    const node = {
-        name: predatorName,
-        count: count,
-        category: speciesData ? speciesData.taxon_category_name : 'Other',
-        children: []
-    };
-    
-    const prey = foodWebConnections[predatorName];
-    if (prey) {
-        prey.forEach(preyName => {
-            if (!preyName || !preyName.trim()) return;
-            const child = buildFoodWebHierarchyNode(preyName, new Set(visited));
-            if (child) {
-                node.children.push(child);
-            }
-        });
-    }
-    
-    return node;
-}
-
-function createFoodWebHierarchy() {
-    const speciesInWeb = getSpeciesInWeb();
-    
-    // Find root nodes (species that eat but aren't eaten)
-    const preySet = new Set();
-    Object.entries(foodWebConnections).forEach(([predator, preyArray]) => {
-        preyArray.forEach(prey => {
-            if (prey && prey.trim()) {
-                preySet.add(prey);
-            }
-        });
-    });
-    const rootNames = Array.from(speciesInWeb).filter(name => name && name.trim() && !preySet.has(name));
-    
-    const allHierarchies = rootNames.map(name => buildFoodWebHierarchyNode(name));
-    const rowCount = Math.max(1, rootNames.length);
-    const treeLayout = d3.tree().size([width - margin.left - margin.right, (height - margin.top - margin.bottom) / rowCount]);
-    
-    const allHierarchyObjects = allHierarchies.map((root, index) => {
-        const hierarchy = d3.hierarchy(root);
-        treeLayout(hierarchy);
-        
-        hierarchy.descendants().forEach(d => {
-            d.y += index * (height - margin.top - margin.bottom) / rowCount;
-        });
-        
-        return hierarchy;
-    });
-
-    return allHierarchyObjects;
-}
-
-function buildFoodWebNetworkData() {
-    const nodesMap = new Map();
-    const links = [];
-
-    Object.entries(foodWebConnections).forEach(([predator, preyArray]) => {
-        if (!predator || !predator.trim()) return;
-
-        const predatorData = data.find(d => d.common_name === predator);
-        nodesMap.set(predator, {
-            id: predator,
-            category: predatorData ? predatorData.taxon_category_name : 'Other',
-            count: data.filter(d => d.common_name === predator).length
-        });
-
-        preyArray.forEach(prey => {
-            if (!prey || !prey.trim()) return;
-
-            const preyData = data.find(d => d.common_name === prey);
-            if (!nodesMap.has(prey)) {
-                nodesMap.set(prey, {
-                    id: prey,
-                    category: preyData ? preyData.taxon_category_name : 'Other',
-                    count: data.filter(d => d.common_name === prey).length
-                });
-            }
-            links.push({ source: predator, target: prey });
-        });
-    });
-
-    return {
-        nodes: Array.from(nodesMap.values()),
-        links
-    };
+    console.log('Species in graph:', speciesInGraph);
+    return speciesInGraph;
 }
 
 // Tooltip helper function
@@ -308,14 +204,14 @@ function attachTooltip(selection) {
     }
 
     selection
-        .on('mouseover', function(event, d) {
+        .on('mouseover', function (event, d) {
             tooltip.style('opacity', 1);
             d3.select(this)
                 .style('stroke', 'black')
                 .style('stroke-width', 1.5)
                 .style('opacity', 1);
         })
-        .on('mousemove', function(event, d) {
+        .on('mousemove', function (event, d) {
             const source = d.data ? d.data : d;
             const name = source.name || source.id || 'Unknown';
             const count = source.value || source.count || 'N/A';
@@ -326,7 +222,7 @@ function attachTooltip(selection) {
                 .style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 10) + 'px');
         })
-        .on('mouseleave', function(event, d) {
+        .on('mouseleave', function (event, d) {
             tooltip.style('opacity', 0);
             d3.select(this)
                 .style('stroke', 'none')
@@ -348,7 +244,7 @@ function renderScatter() {
 
     // Add a layer of diamonds
     const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(8);
-    
+
     svg.append('g')
         .attr('class', 'points')
         .attr('fill-opacity', 1)
@@ -382,16 +278,16 @@ function renderScatterToPacked(sortOption) {
     // Create mapping of data to packed circle positions
     const sortedData = data.map((d, i) => {
         const pos = packedMap.get(d.common_name);
-        
+
         // Original positions from scatter plot
         const originalX = xScatter(+d.long);
         const originalY = yScatter(+d.lat);
-        
+
         // Target position: center of packed circle with minimal jitter
         const angle = Math.random() * 2 * Math.PI;
         const sortedX = pos.x + Math.cos(angle);
         const sortedY = pos.y + Math.sin(angle);
-        
+
         return {
             ...d,
             originalX,
@@ -403,7 +299,7 @@ function renderScatterToPacked(sortOption) {
 
     // Create diamond symbols
     const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(8);
-    
+
     // Render diamonds at original positions first
     svg.append('g')
         .attr('class', 'points')
@@ -419,7 +315,7 @@ function renderScatterToPacked(sortOption) {
         .attr('d', d3.symbol().type(d3.symbolDiamond).size(2))
         .attr('transform', d => `translate(${d.sortedX},${d.sortedY})`)
         .remove();
-    
+
     // Render circles
     const circles = svg.append('g')
         .attr('class', 'packed-circles')
@@ -430,128 +326,18 @@ function renderScatterToPacked(sortOption) {
         .attr('cy', d => d.y)
         .attr('fill', d => colorScale(d.data.category))
         .transition()
-        .duration(animationProperties.duration*1.5)
+        .duration(animationProperties.duration * 1.5)
         .attr('r', d => d.r);
-    
+
     // Attach tooltip to circles
     attachTooltip(svg.selectAll('.packed-circles circle'));
-}
-
-// Renders packed circles and then transitions to a food web layout
-function renderPackedToWeb(sortOption) {
-    const colorScale = createColorScale();
-    const packed = createPackedLayout(sortOption);
-    const speciesInWeb = getSpeciesInWeb();
-    const allHierarchyObjects = createFoodWebHierarchy();
-
-    // Extract links from hierarchies
-    const allLinks = allHierarchyObjects.flatMap(h => h.links());
-
-    // Create a group for the tree with proper translation
-    const treeGroup = svg.append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
-    
-    // Draw links first (beneath circles) with initial opacity
-    treeGroup.append('g')
-        .attr('class', 'food-web-links')
-        .attr('fill', 'none')
-        .attr('stroke', '#999')
-        .attr('stroke-width', 0.5)
-        .attr('opacity', 0)
-        .selectAll('path')
-        .data(allLinks)
-        .join('path')
-        .attr('d', d3.linkVertical()
-            .x(d => d.x)
-            .y(d => d.y));
-
-    // Render circles (on top of links)
-    const circles = svg.append('g')
-        .attr('class', 'food-web-circles')
-        .selectAll('circle')
-        .data(packed.leaves())
-        .join('circle')
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y)
-        .attr('r', d => d.r)
-        .attr('fill', d => colorScale(d.data.category))
-        .attr('fill-opacity', 1);
-    
-    // Attach tooltips to food web circles
-    attachTooltip(circles);
-    
-    // Transition circles not in food web to invisible and remove
-    circles.filter(d => !speciesInWeb.has(d.data.name))
-        .transition()
-        .duration(animationProperties.duration)
-        .attr('fill-opacity', 0)
-        .remove();
-
-    const allNodes = allHierarchyObjects.flatMap(h => h.descendants());
-    
-    // Create map of species name to web position
-    const webPositions = new Map();
-    allNodes.forEach(node => {
-        webPositions.set(node.data.name, {
-            x: margin.left + node.x,
-            y: margin.top + node.y
-        });
-    });
-    
-    // Transition remaining circles to food web positions
-    circles.filter(d => speciesInWeb.has(d.data.name))
-        .transition()
-        .delay(animationProperties.duration/2)
-        .duration(animationProperties.duration)
-        .attr('cx', d => webPositions.get(d.data.name).x)
-        .attr('cy', d => webPositions.get(d.data.name).y)
-        .attr('r', 10);
-
-    // Fade in links after circles have moved
-    treeGroup.select('.food-web-links')
-        .transition()
-        .delay(animationProperties.duration)
-        .duration(animationProperties.duration)
-        .attr('opacity', 1);
-    
-    // Add images for species that have them
-    const imageData = packed.leaves()
-        .filter(d => speciesImages[d.data.name])
-        .map(d => ({
-            name: d.data.name,
-            imagePath: speciesImages[d.data.name]
-        }));
-    
-    const images = treeGroup.append('g')
-        .attr('class', 'food-web-images')
-        .selectAll('image')
-        .data(imageData, d => d.name)
-        .join('image')
-        .attr('x', d => {
-            const pos = webPositions.get(d.name);
-            return pos.x - 25;
-        })
-        .attr('y', d => {
-            const pos = webPositions.get(d.name);
-            return pos.y - 25;
-        })
-        .attr('width', 50)
-        .attr('height', 50)
-        .attr('href', d => d.imagePath)
-        .attr('opacity', 0);
-    
-    // Fade in images after circles have finished moving
-    images.transition()
-        .delay(animationProperties.duration * 1.5)
-        .duration(animationProperties.duration)
-        .attr('opacity', 1);
 }
 
 // Renders food web layout as graph
 function renderPackedToGraph(sortOption) {
     const colorScale = createColorScale();
     const packed = createPackedLayout(sortOption);
-    const speciesInWeb = getSpeciesInWeb();
+    const speciesInGraph = getSpeciesInGraph();
     // const allHierarchyObjects = createFoodWebHierarchy();
 
     // Extract links from hierarchies
@@ -568,22 +354,63 @@ function renderPackedToGraph(sortOption) {
         .attr('r', d => d.r)
         .attr('fill', d => colorScale(d.data.category))
         .attr('fill-opacity', 1);
-    
+
     // Attach tooltips to food web circles
     attachTooltip(circles);
-    
+
     // Transition circles not in food web to invisible and remove
-    circles.filter(d => !speciesInWeb.has(d.data.name))
+    circles.filter(d => !speciesInGraph.has(d.data.name))
         .transition()
         .duration(animationProperties.duration)
         .attr('fill-opacity', 0)
         .remove();
     // Transition remaining circles - resize and reposition
-    circles.filter(d => speciesInWeb.has(d.data.name))
+    circles.filter(d => speciesInGraph.has(d.data.name))
         .transition()
-        .delay(animationProperties.duration/2)
+        .delay(animationProperties.duration / 2)
         .duration(animationProperties.duration)
         .attr('r', 10);
+
+    const links = links_data.map(d => ({ ...d }));
+    const nodes = nodes_data.map(d => ({ ...d }));
+
+    // create a simulation for the graph layout
+    const simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.common_name))
+        .force('charge', d3.forceManyBody())
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .on('tick', ticked);
+
+    // Add a line for each link, and a circle for each node.
+    const link = svg.append("g")
+        .attr("stroke", "#999")
+        .attr("stroke-opacity", 0.6)
+        .selectAll()
+        .data(links)
+        .join("line")
+        .attr("stroke-width", d => Math.sqrt(d.value));
+
+    const node = svg.append("g")
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5)
+        .selectAll()
+        .data(nodes)
+        .join("circle")
+        .attr("r", 5)
+
+    // Set the position attributes of links and nodes each time the simulation ticks.
+    function ticked() {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
+    }
+    return svg.node();
 }
 
 // Renders food web to packed circles (reverse of renderPackedToWeb)

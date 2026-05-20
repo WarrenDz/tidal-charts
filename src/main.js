@@ -25,7 +25,8 @@ const margin = { top: 12, right: 12, bottom: 12, left: 12 };
 const aspectRatios = {
     scatter: 16 / 9,   // landscape
     packed: 16 / 9,         // square
-    web: 16 / 9         // slightly wider
+    web: 16 / 9,         // slightly wider
+    graph: 16 / 9
 };
 
 // Animation config
@@ -53,21 +54,13 @@ const categoryColors = {
 // Food web configuration
 const foodWebConnections = {
     // Format: 'predator_name': ['prey_name1', 'prey_name2', ...]
-    'Western Gull': ['Pacific Purple Sea Urchin', 'Purple Shore Crab', 'California Mussel', 'Wrinkled Purple Whelk'],
-    'Pacific Rock Crab': [],
-    'Purple Shore Crab': ['Red-striped Acorn Barnacle'],
-    'California Mussel': [],
-    'Wrinkled Purple Whelk': ['Red-striped Acorn Barnacle'],
-    'Bull Kelp': [],
-    'Pacific Purple Sea Urchin': ['Rockweed','greater periwinkle'],
-    'Giant Green Anemone': ['Purple Shore Crab', 'Mosshead Sculpin'],
-    'Ochre Sea Star': [],
-    'Mosshead Sculpin': [],
-    'Red-striped Acorn Barnacle': [],
-    'Owl Limpet': ['Rockweed'],
-    'Rockweed': [],
-    'greater periwinkle': ['Rockweed'],
-    'Giant Pacific Octopus': ['Purple Shore Crab', 'Mosshead Sculpin', ]
+    'Glaucous-winged Gull': ['Northern Kelp Crab', 'Checkered Periwinkle', 'California Mussel', 'Ochre Sea Star','Wooly Sculpin', 'Wrinkled Purple Whelk'],
+    'Ochre Sea Star': ['Goose Barnacle', 'California Mussel', 'Rough Limpet', 'Rough Keyhole Limpet'],
+    'Western Sandpiper': ['Bay Ghost Shrimp', 'California Mussel', 'Checkered Periwinkle'],
+    'Wooly Sculpin': ['Rough Keyhole Limpet'],
+    'Northern Kelp Crab': ['California Mussel'],
+    'Checkered Periwinkle': ['Turkish washcloth'],
+    'Wrinkled Purple Whelk': ['California Mussel']
 };
 
 // Species images configuration
@@ -149,6 +142,7 @@ function redraw() {
         if (newHash === 'scatter') renderScatter();
         else if (newHash === 'packed') renderScatterToPacked();
         else if (newHash === 'web') renderPackedToWeb();
+        else if (newHash === 'graph') renderPackedToGraph();
     }
 }
 
@@ -194,9 +188,13 @@ function createPackedLayout(sortOption = null) {
 function getSpeciesInWeb() {
     const speciesInWeb = new Set();
     Object.entries(foodWebConnections).forEach(([predator, preyArray]) => {
-        speciesInWeb.add(predator);
+        if (predator && predator.trim()) {
+            speciesInWeb.add(predator);
+        }
         preyArray.forEach(prey => {
-            speciesInWeb.add(prey);
+            if (prey && prey.trim()) {
+                speciesInWeb.add(prey);
+            }
         });
     });
     return speciesInWeb;
@@ -221,6 +219,7 @@ function buildFoodWebHierarchyNode(predatorName, visited = new Set()) {
     const prey = foodWebConnections[predatorName];
     if (prey) {
         prey.forEach(preyName => {
+            if (!preyName || !preyName.trim()) return;
             const child = buildFoodWebHierarchyNode(preyName, new Set(visited));
             if (child) {
                 node.children.push(child);
@@ -238,26 +237,64 @@ function createFoodWebHierarchy() {
     const preySet = new Set();
     Object.entries(foodWebConnections).forEach(([predator, preyArray]) => {
         preyArray.forEach(prey => {
-            preySet.add(prey);
+            if (prey && prey.trim()) {
+                preySet.add(prey);
+            }
         });
     });
-    const rootNames = Array.from(speciesInWeb).filter(name => !preySet.has(name));
+    const rootNames = Array.from(speciesInWeb).filter(name => name && name.trim() && !preySet.has(name));
     
     const allHierarchies = rootNames.map(name => buildFoodWebHierarchyNode(name));
-    const treeLayout = d3.tree().size([width - margin.left - margin.right, (height - margin.top - margin.bottom) / rootNames.length]);
+    const rowCount = Math.max(1, rootNames.length);
+    const treeLayout = d3.tree().size([width - margin.left - margin.right, (height - margin.top - margin.bottom) / rowCount]);
     
     const allHierarchyObjects = allHierarchies.map((root, index) => {
         const hierarchy = d3.hierarchy(root);
         treeLayout(hierarchy);
         
         hierarchy.descendants().forEach(d => {
-            d.y += index * (height - margin.top - margin.bottom) / rootNames.length;
+            d.y += index * (height - margin.top - margin.bottom) / rowCount;
         });
         
         return hierarchy;
     });
 
     return allHierarchyObjects;
+}
+
+function buildFoodWebNetworkData() {
+    const nodesMap = new Map();
+    const links = [];
+
+    Object.entries(foodWebConnections).forEach(([predator, preyArray]) => {
+        if (!predator || !predator.trim()) return;
+
+        const predatorData = data.find(d => d.common_name === predator);
+        nodesMap.set(predator, {
+            id: predator,
+            category: predatorData ? predatorData.taxon_category_name : 'Other',
+            count: data.filter(d => d.common_name === predator).length
+        });
+
+        preyArray.forEach(prey => {
+            if (!prey || !prey.trim()) return;
+
+            const preyData = data.find(d => d.common_name === prey);
+            if (!nodesMap.has(prey)) {
+                nodesMap.set(prey, {
+                    id: prey,
+                    category: preyData ? preyData.taxon_category_name : 'Other',
+                    count: data.filter(d => d.common_name === prey).length
+                });
+            }
+            links.push({ source: predator, target: prey });
+        });
+    });
+
+    return {
+        nodes: Array.from(nodesMap.values()),
+        links
+    };
 }
 
 // Tooltip helper function
@@ -279,7 +316,11 @@ function attachTooltip(selection) {
                 .style('opacity', 1);
         })
         .on('mousemove', function(event, d) {
-            const tooltipText = `<strong>${d.data.name}</strong><br/>Count: ${d.data.value}<br/>Category: ${d.data.category}`;
+            const source = d.data ? d.data : d;
+            const name = source.name || source.id || 'Unknown';
+            const count = source.value || source.count || 'N/A';
+            const category = source.category || source.taxon_category_name || 'Other';
+            const tooltipText = `<strong>${name}</strong><br/>Count: ${count}<br/>Category: ${category}`;
             tooltip
                 .html(tooltipText)
                 .style('left', (event.pageX + 10) + 'px')
@@ -504,6 +545,45 @@ function renderPackedToWeb(sortOption) {
         .delay(animationProperties.duration * 1.5)
         .duration(animationProperties.duration)
         .attr('opacity', 1);
+}
+
+// Renders food web layout as graph
+function renderPackedToGraph(sortOption) {
+    const colorScale = createColorScale();
+    const packed = createPackedLayout(sortOption);
+    const speciesInWeb = getSpeciesInWeb();
+    // const allHierarchyObjects = createFoodWebHierarchy();
+
+    // Extract links from hierarchies
+    // const allLinks = allHierarchyObjects.flatMap(h => h.links());
+
+    // Render circles (on top of links)
+    const circles = svg.append('g')
+        .attr('class', 'food-web-circles')
+        .selectAll('circle')
+        .data(packed.leaves())
+        .join('circle')
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .attr('r', d => d.r)
+        .attr('fill', d => colorScale(d.data.category))
+        .attr('fill-opacity', 1);
+    
+    // Attach tooltips to food web circles
+    attachTooltip(circles);
+    
+    // Transition circles not in food web to invisible and remove
+    circles.filter(d => !speciesInWeb.has(d.data.name))
+        .transition()
+        .duration(animationProperties.duration)
+        .attr('fill-opacity', 0)
+        .remove();
+    // Transition remaining circles - resize and reposition
+    circles.filter(d => speciesInWeb.has(d.data.name))
+        .transition()
+        .delay(animationProperties.duration/2)
+        .duration(animationProperties.duration)
+        .attr('r', 10);
 }
 
 // Renders food web to packed circles (reverse of renderPackedToWeb)

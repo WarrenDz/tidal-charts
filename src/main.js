@@ -364,8 +364,11 @@ function renderPackedToGraph(sortOption) {
         .duration(animationProperties.duration)
         .attr('fill-opacity', 0)
         .remove();
-    // Transition remaining circles - resize and reposition
-    circles.filter(d => speciesInGraph.has(d.data.name))
+
+    const graphCircles = circles.filter(d => speciesInGraph.has(d.data.name));
+
+    // Transition remaining circles - resize and keep them visible for the graph layout
+    const graphTransition = graphCircles
         .transition()
         .delay(animationProperties.duration / 2)
         .duration(animationProperties.duration)
@@ -374,42 +377,109 @@ function renderPackedToGraph(sortOption) {
     const links = links_data.map(d => ({ ...d }));
     const nodes = nodes_data.map(d => ({ ...d }));
 
-    // create a simulation for the graph layout
-    const simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id(d => d.common_name))
-        .force('charge', d3.forceManyBody())
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .on('tick', ticked);
+    const packedPositions = new Map(
+        packed.leaves().map(leaf => [leaf.data.name, leaf])
+    );
 
-    // Add a line for each link, and a circle for each node.
-    const link = svg.append("g")
-        .attr("stroke", "#999")
-        .attr("stroke-opacity", 0.6)
-        .selectAll()
-        .data(links)
-        .join("line")
-        .attr("stroke-width", d => Math.sqrt(d.value));
+    // Initialize simulation nodes at their packed positions so the circles can move smoothly.
+    nodes.forEach(node => {
+        const packedNode = packedPositions.get(node.common_name);
+        if (packedNode) {
+            node.x = packedNode.x;
+            node.y = packedNode.y;
+        }
+    });
 
-    const node = svg.append("g")
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5)
-        .selectAll()
-        .data(nodes)
-        .join("circle")
-        .attr("r", 5)
+    function startGraph() {
+        // Add a line for each link.
+        const link = svg.append("g")
+            .attr("class", "food-web-links")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6)
+            .selectAll()
+            .data(links)
+            .join("line")
+            .attr("stroke-width", d => Math.sqrt(d.value));
 
-    // Set the position attributes of links and nodes each time the simulation ticks.
-    function ticked() {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
+        const getName = ref => typeof ref === 'string'
+            ? ref
+            : ref?.common_name || ref?.id || ref?.name;
 
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
+        const adjacency = new Map();
+        links.forEach(linkDatum => {
+            const sourceName = getName(linkDatum.source);
+            const targetName = getName(linkDatum.target);
+
+            if (!adjacency.has(sourceName)) adjacency.set(sourceName, new Set());
+            if (!adjacency.has(targetName)) adjacency.set(targetName, new Set());
+
+            adjacency.get(sourceName).add(targetName);
+            adjacency.get(targetName).add(sourceName);
+        });
+
+        graphCircles.on('click', function(event, d) {
+            event.stopPropagation();
+            const selectedName = d.data.name;
+            const neighbors = adjacency.get(selectedName) || new Set();
+
+            graphCircles
+                .attr('fill-opacity', node => node.data.name === selectedName || neighbors.has(node.data.name) ? 1 : 0.2)
+                .attr('stroke', node => node.data.name === selectedName ? '#000' : neighbors.has(node.data.name) ? '#666' : 'none')
+                .attr('stroke-width', node => node.data.name === selectedName ? 3 : neighbors.has(node.data.name) ? 2 : 0);
+
+            link
+                .attr('stroke', linkDatum => {
+                    const sourceName = getName(linkDatum.source);
+                    const targetName = getName(linkDatum.target);
+                    return sourceName === selectedName || targetName === selectedName ? '#000' : '#999';
+                })
+                .attr('stroke-opacity', linkDatum => {
+                    const sourceName = getName(linkDatum.source);
+                    const targetName = getName(linkDatum.target);
+                    return sourceName === selectedName || targetName === selectedName ? 1 : 0.15;
+                });
+        });
+
+        svg.on('click', function(event) {
+            if (event.target === this || event.target.tagName === 'svg') {
+                graphCircles
+                    .attr('fill-opacity', 1)
+                    .attr('stroke', 'none')
+                    .attr('stroke-width', 0);
+                link
+                    .attr('stroke', '#999')
+                    .attr('stroke-opacity', 0.6);
+            }
+        });
+
+        const simulation = d3.forceSimulation(nodes)
+            .force('link', d3.forceLink(links).id(d => d.common_name).distance(100))
+            .force('charge', d3.forceManyBody().strength(-75))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collide', d3.forceCollide(d => d.r + 5))
+            .alpha(0.5) // "energy" of the simulation - start high for more movement
+            .alphaDecay(0.5) // lower decay longer animation - slower to settle
+            .velocityDecay(0.5) // friction - lower nodes move more, higher movement damps faster
+            .on('tick', ticked);
+
+        function ticked() {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            const positionByName = new Map(nodes.map(d => [d.common_name, d]));
+
+            graphCircles
+                .attr('cx', d => positionByName.get(d.data.name)?.x ?? d.x)
+                .attr('cy', d => positionByName.get(d.data.name)?.y ?? d.y);
+        }
+
+        svg.select('.food-web-circles').raise(); // Ensure circles are on top of links
     }
+
+    graphTransition.end().then(startGraph);
     return svg.node();
 }
 

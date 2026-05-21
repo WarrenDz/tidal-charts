@@ -131,6 +131,11 @@ function redraw() {
         // svg.selectAll('*').remove();
         currentHash = newHash;
         renderWebToPacked();
+    } else if (transition === 'graph-packed') {
+        // graph -> packed transition: preserve animation
+        // svg.selectAll('*').remove();
+        currentHash = newHash;
+        renderGraphToPacked();
     } else {
         // All other transitions: clear and render based on new hash
         svg.selectAll('*').remove();
@@ -483,6 +488,58 @@ function renderPackedToGraph(sortOption) {
     return svg.node();
 }
 
+// Renders food web layout as packed circles (reverse of renderPackedToGraph)
+function renderGraphToPacked() {
+    const colorScale = createColorScale();
+
+        // Fade out and remove links
+        svg.select('.food-web-links')
+            .transition()
+            .duration(animationProperties.duration)
+            .attr('opacity', 0)
+            .remove();
+
+        // Transition circles back to packed positions
+        const packed = createPackedLayout();
+        const packedMap = new Map(
+            packed.leaves().map(leaf => [leaf.data.name, { x: leaf.x, y: leaf.y, r: leaf.r }])
+        );
+
+        svg.selectAll('.food-web-circles circle')
+            .transition()
+            .duration(animationProperties.duration)
+            .attr('cx', d => packedMap.get(d.data.name)?.x ?? d.x)
+            .attr('cy', d => packedMap.get(d.data.name)?.y ?? d.y)
+            .attr('r', d => packedMap.get(d.data.name)?.r ?? d.r);
+        
+        // Add back circles that were not in the food web
+        const speciesInWeb = new Set(links_data.flatMap(d => [d.source, d.target]));
+        const allPackedSpecies = new Set(packed.leaves().map(d => d.data.name));
+        const excludedSpecies = Array.from(allPackedSpecies).filter(name => !speciesInWeb.has(name));
+
+        if (excludedSpecies.length > 0) {
+            const excludedData = excludedSpecies.map(name => {
+                return packed.leaves().find(d => d.data.name === name);
+            });
+
+            svg.append('g')
+                .selectAll('circle')
+                .data(excludedData, d => d.data.name)
+                .join('circle')
+                .attr('cx', d => d.x)
+                .attr('cy', d => d.y)
+                .attr('r', 0)
+                .attr('fill', d => colorScale(d.data.category))
+                .attr('fill-opacity', 0)
+                .transition()
+                .duration(animationProperties.duration)
+                .attr('r', d => d.r)
+                .attr('fill-opacity', 1);
+        }
+
+         // Attach tooltip to all circles
+         attachTooltip(svg.selectAll('.food-web-circles circle'));
+}
 // Renders food web to packed circles (reverse of renderPackedToWeb)
 function renderWebToPacked() {
     const colorScale = createColorScale();

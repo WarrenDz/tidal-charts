@@ -1,0 +1,115 @@
+source,target,weight
+Fingered Limpet,Wooly Sculpin,1
+Fingered Limpet,Striped Shore Crab,1
+Fingered Limpet,Mosshead Sculpin,1
+Fingered Limpet,Glaucous-winged Gull,1
+Calico Surfperch,Glaucous-winged Gull,1
+Common Rock Louse,Western Sandpiper,1
+Wooly Sculpin,Giant Pacific Octopus,2
+Wooly Sculpin,Glaucous-winged Gull,1
+Pacific Purple Sea Urchin,Wooly Sculpin,1
+Pacific Purple Sea Urchin,Glaucous-winged Gull,1
+Goose Barnacle,Ochre Sea Star,1
+Goose Barnacle,Glaucous-winged Gull,1
+Checkered Periwinkle,Wooly Sculpin,1
+Checkered Periwinkle,Giant Green Anemone,1
+Checkered Periwinkle,Starburst Anemone,1
+Checkered Periwinkle,Giant Pacific Octopus,2
+Checkered Periwinkle,Red Rock Crab,2
+Checkered Periwinkle,Mosshead Sculpin,1
+Checkered Periwinkle,Glaucous-winged Gull,1
+Checkered Periwinkle,Western Sandpiper,1
+Thatched Barnacle,Giant Green Anemone,1
+Thatched Barnacle,Starburst Anemone,1
+Thatched Barnacle,Fingered Limpet,1
+Thatched Barnacle,Plate Limpet,1
+Thatched Barnacle,Leafy Hornmouth,1
+Thatched Barnacle,Wrinkled Purple Whelk,1
+Thatched Barnacle,Giant Pacific Octopus,2
+Thatched Barnacle,Red Rock Crab,2
+Thatched Barnacle,Glaucous-winged Gull,1
+Pacific Barnacle,Giant Green Anemone,2
+Pacific Barnacle,Starburst Anemone,2
+Pacific Barnacle,Ochre Sea Star,2
+Pacific Barnacle,Fingered Limpet,2
+Pacific Barnacle,Plate Limpet,2
+Pacific Barnacle,Wrinkled Purple Whelk,2
+Pacific Barnacle,Glaucous-winged Gull,2
+Pacific Barnacle,Western Sandpiper,2
+Pacific Barnacle,Owl Limpet,1
+Pacific Barnacle,Leafy Hornmouth,1
+Plate Limpet,Giant Green Anemone,1
+Plate Limpet,Starburst Anemone,1
+Plate Limpet,Ochre Sea Star,1
+Plate Limpet,Striped Shore Crab,1
+Plate Limpet,Glaucous-winged Gull,1
+Little Rockweed,Channeled Topsnail,1
+Little Rockweed,Checkered Periwinkle,1
+Little Rockweed,Pacific Hairy Hermit Crab,1
+Plainfin Midshipman,Leopard Shark,1
+Plainfin Midshipman,Coyote,1
+Plainfin Midshipman,Glaucous-winged Gull,3
+Starburst Anemone,Wooly Sculpin,1
+Starburst Anemone,Horned Nudibranch,1
+Starburst Anemone,Mosshead Sculpin,1
+Giant Pacific Octopus,Leopard Shark,6
+Giant Pacific Octopus,Glaucous-winged Gull,3
+Owl Limpet,Calico Surfperch,1
+Striped Shore Crab,Wooly Sculpin,1
+California Sandcastle Worm,Western Sandpiper,1
+Torrey's Surfgrass,Pacific Purple Sea Urchin,1
+Pile Worm,Leopard Shark,1
+Pile Worm,Glaucous-winged Gull,1
+Pile Worm,Western Sandpiper,1
+Ochre Sea Star,Glaucous-winged Gull,1
+Red Sea Cucumber,Red Rock Crab,2
+Red Sea Cucumber,Glaucous-winged Gull,1
+Giant Green Anemone,Wooly Sculpin,1
+Giant Green Anemone,Horned Nudibranch,1
+Giant Green Anemone,Mosshead Sculpin,1
+Sea Thread Hydroid,Horned Nudibranch,1
+California Mussel,Wooly Sculpin,1
+California Mussel,Giant Green Anemone,1
+California Mussel,Starburst Anemone,1
+California Mussel,Ochre Sea Star,1
+California Mussel,Leafy Hornmouth,1
+California Mussel,Wrinkled Purple Whelk,1
+California Mussel,Giant Pacific Octopus,2
+California Mussel,Northern Kelp Crab,1
+California Mussel,Red Rock Crab,2
+California Mussel,Mosshead Sculpin,1
+California Mussel,Glaucous-winged Gull,1
+California Mussel,Western Sandpiper,1
+Leafy Hornmouth,Glaucous-winged Gull,2
+Giant Kelp,Pacific Purple Sea Urchin,1
+Giant Kelp,Channeled Topsnail,1
+Giant Kelp,Gumboot Chiton,1
+Giant Kelp,Northern Kelp Crab,1
+Northern Kelp Crab,Wooly Sculpin,1
+Northern Kelp Crab,Giant Green Anemone,1
+Northern Kelp Crab,Starburst Anemone,1
+Northern Kelp Crab,Giant Pacific Octopus,2
+Northern Kelp Crab,Red Rock Crab,2
+Northern Kelp Crab,Mosshead Sculpin,1
+Northern Kelp Crab,Glaucous-winged Gull,1
+Wrinkled Purple Whelk,Red Rock Crab,2
+Wrinkled Purple Whelk,Glaucous-winged Gull,1
+Bull Kelp,Channeled Topsnail,1
+Bull Kelp,Northern Kelp Crab,1
+Bull Kelp,Glaucous-winged Gull,1
+Gumboot Chiton,Mosshead Sculpin,1
+Gumboot Chiton,Coyote,1
+Gumboot Chiton,Glaucous-winged Gull,1
+Pacific Hairy Hermit Crab,Wooly Sculpin,1
+Pacific Hairy Hermit Crab,Striped Shore Crab,1
+Pacific Hairy Hermit Crab,Mosshead Sculpin,1
+Pacific Hairy Hermit Crab,Glaucous-winged Gull,1
+Red Rock Crab,Leopard Shark,2
+Red Rock Crab,Giant Green Anemone,2
+Red Rock Crab,Starburst Anemone,2
+Red Rock Crab,Giant Pacific Octopus,4
+Red Rock Crab,Glaucous-winged Gull,2
+Mosshead Sculpin,Giant Pacific Octopus,2
+Mosshead Sculpin,Glaucous-winged Gull,1
+Wrinkled Rock Borer,Leafy Hornmouth,1
+Wrinkled Rock Borer,Red Rock Crab,2

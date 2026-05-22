@@ -126,19 +126,19 @@ function redraw() {
     // Determine transition type and render accordingly
     const transition = `${previousHash}-${newHash}`;
 
-    if (transition === 'graph-packed') {
+    if (transition === 'web-packed') {
         // graph -> packed transition: preserve animation
         // svg.selectAll('*').remove();
         currentHash = newHash;
         renderGraphToPacked();
-    } else if (transition === 'packed-graph') {
+    } else if (transition === 'packed-web') {
         // packed -> graph transition: preserve animation
         // stop any current simulation and remove old graphical groups to avoid duplicates
         if (currentSimulation) {
             currentSimulation.stop();
             currentSimulation = null;
         }
-        svg.selectAll('.food-web-links, .food-web-images, .food-web-circles').remove();
+        svg.selectAll('*').remove();
         currentHash = newHash;
         renderPackedToGraph();
     } else {
@@ -152,7 +152,7 @@ function redraw() {
 
         if (newHash === 'scatter') renderScatter();
         else if (newHash === 'packed') renderScatterToPacked();
-        else if (newHash === 'graph') renderPackedToGraph();
+        else if (newHash === 'web') renderPackedToGraph();
     }
 }
 

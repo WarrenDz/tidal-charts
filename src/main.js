@@ -54,8 +54,11 @@ const categoryColors = {
 };
 
 // Species images configuration
+// Each entry can be a string (image src) or an object { src, position, width, height }
+// position: 'right', 'left', 'upper-right', 'lower-left', 'center-top', etc.
 const speciesImages = {
-    'Ochre Sea Star': 'assets/starfish.jpeg'
+    'Ochre Sea Star': { src: 'assets/Ochre Sea Star.jpeg', position: 'upper-right', width: 40, height: 40 },
+    'Glaucous-winged Gull': { src: 'assets/Gull.jpg', position: 'upper-left', width: 40, height: 40 }
 };
 
 // Load and process data
@@ -233,6 +236,57 @@ function attachTooltip(selection) {
                 .style('stroke', 'none')
                 .style('opacity', null);
         });
+}
+
+// Helper to get normalized image info for a species name
+function getImageInfo(name) {
+    const entry = speciesImages[name];
+    if (!entry) return null;
+    if (typeof entry === 'string') return { src: entry, position: 'right', width: 32, height: 32 };
+    return {
+        src: entry.src,
+        position: entry.position || 'right',
+        width: entry.width || 32,
+        height: entry.height || 32
+    };
+}
+
+// Compute image top-left x/y given node position, node radius, image size and desired position
+function computeImagePosition(node, imgW, imgH, position) {
+    const pad = 3;
+    const r = node.r || 10;
+    const x = node.x || 0;
+    const y = node.y || 0;
+
+    switch ((position || 'right').toLowerCase()) {
+        case 'left':
+            return { x: x - r - pad - imgW, y: y - imgH / 2 };
+        case 'upper-left':
+        case 'upper_left':
+            return { x: x - r - pad - imgW, y: y - r - pad - imgH };
+        case 'upper-right':
+        case 'upper_right':
+            return { x: x + r + pad, y: y - r - pad - imgH };
+        case 'lower-left':
+        case 'lower_left':
+            return { x: x - r - pad - imgW, y: y + r + pad };
+        case 'lower-right':
+        case 'lower_right':
+            return { x: x + r + pad, y: y + r + pad };
+        case 'top':
+        case 'center-top':
+        case 'center_top':
+            return { x: x - imgW / 2, y: y - r - pad - imgH };
+        case 'bottom':
+        case 'center-bottom':
+        case 'center_bottom':
+            return { x: x - imgW / 2, y: y + r + pad };
+        case 'center':
+            return { x: x - imgW / 2, y: y - imgH / 2 };
+        case 'right':
+        default:
+            return { x: x + r + pad, y: y - imgH / 2 };
+    }
 }
 
 // Render scatter plot
@@ -422,6 +476,28 @@ function renderPackedToGraph(sortOption) {
             adjacency.get(targetName).add(sourceName);
         });
 
+        // Create thumbnail images for nodes that have configured images
+        const imageGroup = svg.append('g')
+            .attr('class', 'food-web-images');
+
+        const imageData = nodes.filter(n => getImageInfo(n.common_name));
+
+        const images = imageGroup.selectAll('image')
+            .data(imageData, d => d.common_name)
+            .join('image')
+            .attr('href', d => getImageInfo(d.common_name).src)
+            .attr('width', d => getImageInfo(d.common_name).width)
+            .attr('height', d => getImageInfo(d.common_name).height)
+            .attr('x', d => {
+                const info = getImageInfo(d.common_name);
+                return computeImagePosition(d, info.width, info.height, info.position).x;
+            })
+            .attr('y', d => {
+                const info = getImageInfo(d.common_name);
+                return computeImagePosition(d, info.width, info.height, info.position).y;
+            })
+            .attr('opacity', 1);
+
         graphCircles.on('click', function(event, d) {
             event.stopPropagation();
             const selectedName = d.data.name;
@@ -443,6 +519,11 @@ function renderPackedToGraph(sortOption) {
                     const targetName = getName(linkDatum.target);
                     return sourceName === selectedName || targetName === selectedName ? 1 : 0.15;
                 });
+
+                // Dim or highlight images to match node selection
+                if (typeof images !== 'undefined') {
+                    images.attr('opacity', imgNode => imgNode.common_name === selectedName || neighbors.has(imgNode.common_name) ? 1 : 0.2);
+                }
         });
 
         svg.on('click', function(event) {
@@ -454,6 +535,9 @@ function renderPackedToGraph(sortOption) {
                 link
                     .attr('stroke', '#999')
                     .attr('stroke-opacity', 0.6);
+                if (typeof images !== 'undefined') {
+                    images.attr('opacity', 1);
+                }
             }
         });
 
@@ -479,6 +563,19 @@ function renderPackedToGraph(sortOption) {
             graphCircles
                 .attr('cx', d => positionByName.get(d.data.name)?.x ?? d.x)
                 .attr('cy', d => positionByName.get(d.data.name)?.y ?? d.y);
+
+            // Update thumbnail image positions on each tick
+            if (typeof images !== 'undefined') {
+                images
+                    .attr('x', d => {
+                        const info = getImageInfo(d.common_name);
+                        return computeImagePosition(d, info.width, info.height, info.position).x;
+                    })
+                    .attr('y', d => {
+                        const info = getImageInfo(d.common_name);
+                        return computeImagePosition(d, info.width, info.height, info.position).y;
+                    });
+            }
         }
 
         svg.select('.food-web-circles').raise(); // Ensure circles are on top of links
@@ -494,6 +591,13 @@ function renderGraphToPacked() {
 
         // Fade out and remove links
         svg.select('.food-web-links')
+            .transition()
+            .duration(animationProperties.duration)
+            .attr('opacity', 0)
+            .remove();
+
+        // Fade out and remove images
+        svg.select('.food-web-images')
             .transition()
             .duration(animationProperties.duration)
             .attr('opacity', 0)
@@ -541,66 +645,66 @@ function renderGraphToPacked() {
          attachTooltip(svg.selectAll('.food-web-circles circle'));
 }
 // Renders food web to packed circles (reverse of renderPackedToWeb)
-function renderWebToPacked() {
-    const colorScale = createColorScale();
-    const packed = createPackedLayout();
-    const speciesInWeb = getSpeciesInWeb();
+// function renderWebToPacked() {
+//     const colorScale = createColorScale();
+//     const packed = createPackedLayout();
+//     const speciesInWeb = getSpeciesInWeb();
 
-    // Create a map of species name to packed circle position
-    const packedMap = new Map(
-        packed.leaves().map(leaf => [leaf.data.name, { x: leaf.x, y: leaf.y, r: leaf.r }])
-    );
+//     // Create a map of species name to packed circle position
+//     const packedMap = new Map(
+//         packed.leaves().map(leaf => [leaf.data.name, { x: leaf.x, y: leaf.y, r: leaf.r }])
+//     );
 
-    // Fade out and remove links
-    svg.select('.food-web-links')
-        .transition()
-        .duration(animationProperties.duration)
-        .attr('opacity', 0)
-        .remove();
+//     // Fade out and remove links
+//     svg.select('.food-web-links')
+//         .transition()
+//         .duration(animationProperties.duration)
+//         .attr('opacity', 0)
+//         .remove();
 
-    // Fade out and remove images
-    svg.select('.food-web-images')
-        .transition()
-        .duration(animationProperties.duration)
-        .attr('opacity', 0)
-        .remove();
+//     // Fade out and remove images
+//     svg.select('.food-web-images')
+//         .transition()
+//         .duration(animationProperties.duration)
+//         .attr('opacity', 0)
+//         .remove();
 
-    // Transition circles back to packed positions
-    svg.selectAll('circle')
-        .transition()
-        .delay(animationProperties.duration)
-        .duration(animationProperties.duration)
-        .attr('cx', d => packedMap.get(d.data.name).x)
-        .attr('cy', d => packedMap.get(d.data.name).y)
-        .attr('r', d => packedMap.get(d.data.name).r);
+//     // Transition circles back to packed positions
+//     svg.selectAll('circle')
+//         .transition()
+//         .delay(animationProperties.duration)
+//         .duration(animationProperties.duration)
+//         .attr('cx', d => packedMap.get(d.data.name).x)
+//         .attr('cy', d => packedMap.get(d.data.name).y)
+//         .attr('r', d => packedMap.get(d.data.name).r);
 
-    // Add back circles that were not in the food web
-    const allPackedSpecies = new Set(packed.leaves().map(d => d.data.name));
-    const excludedSpecies = Array.from(allPackedSpecies).filter(name => !speciesInWeb.has(name));
+//     // Add back circles that were not in the food web
+//     const allPackedSpecies = new Set(packed.leaves().map(d => d.data.name));
+//     const excludedSpecies = Array.from(allPackedSpecies).filter(name => !speciesInWeb.has(name));
 
-    if (excludedSpecies.length > 0) {
-        const excludedData = excludedSpecies.map(name => {
-            return packed.leaves().find(d => d.data.name === name);
-        });
+//     if (excludedSpecies.length > 0) {
+//         const excludedData = excludedSpecies.map(name => {
+//             return packed.leaves().find(d => d.data.name === name);
+//         });
 
-        svg.append('g')
-            .selectAll('circle')
-            .data(excludedData, d => d.data.name)
-            .join('circle')
-            .attr('cx', d => d.x)
-            .attr('cy', d => d.y)
-            .attr('r', 0)
-            .attr('fill', d => colorScale(d.data.category))
-            .attr('fill-opacity', 0)
-            .transition()
-            .delay(animationProperties.duration)
-            .duration(animationProperties.duration)
-            .attr('r', d => d.r)
-            .attr('fill-opacity', 1);
-    }
-    // Attach tooltip to all circles
-    attachTooltip(svg.selectAll('circle'));
-}
+//         svg.append('g')
+//             .selectAll('circle')
+//             .data(excludedData, d => d.data.name)
+//             .join('circle')
+//             .attr('cx', d => d.x)
+//             .attr('cy', d => d.y)
+//             .attr('r', 0)
+//             .attr('fill', d => colorScale(d.data.category))
+//             .attr('fill-opacity', 0)
+//             .transition()
+//             .delay(animationProperties.duration)
+//             .duration(animationProperties.duration)
+//             .attr('r', d => d.r)
+//             .attr('fill-opacity', 1);
+//     }
+//     // Attach tooltip to all circles
+//     attachTooltip(svg.selectAll('circle'));
+// }
 
 // initialize
 loadData();

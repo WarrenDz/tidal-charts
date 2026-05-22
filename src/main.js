@@ -141,6 +141,10 @@ function redraw() {
         svg.selectAll('*').remove();
         currentHash = newHash;
         renderPackedToGraph();
+    } else if (transition === 'packed-scatter') {
+        // packed -> scatter: preserve animation
+        currentHash = newHash;
+        renderPackedToScatter();
     } else {
         // All other transitions: clear and render based on new hash
         if (currentSimulation) {
@@ -396,6 +400,67 @@ function renderScatterToPacked(sortOption) {
     // Attach tooltip to circles
     attachTooltip(svg.selectAll('.packed-circles circle'));
 }
+
+// Render packed circles to scatter plot (reverse of renderScatterToPacked)
+function renderPackedToScatter() {
+    const xScatter = d3.scaleLinear()
+        .domain([chartCoordinates.xMin, chartCoordinates.xMax])
+        .range([margin.left, width - margin.right]);
+
+    const yScatter = d3.scaleLinear()
+        .domain([chartCoordinates.yMin, chartCoordinates.yMax])
+        .range([height - margin.bottom, margin.top]);
+
+    const colorScale = createColorScale();
+    const packed = createPackedLayout();
+
+    const packedMap = new Map(
+        packed.leaves().map(leaf => [leaf.data.name, { x: leaf.x, y: leaf.y, r: leaf.r }])
+    );
+
+    const scatterData = data.map(d => ({
+        ...d,
+        packedX: packedMap.get(d.common_name)?.x ?? width / 2,
+        packedY: packedMap.get(d.common_name)?.y ?? height / 2,
+        packedR: packedMap.get(d.common_name)?.r ?? 0,
+        scatterX: xScatter(+d.long),
+        scatterY: yScatter(+d.lat)
+    }));
+
+    // Remove any existing point layer to avoid duplicates
+    svg.selectAll('.points').remove();
+
+    // Keep packed circles visible while we spawn points at their centroids,
+    // then fade the packed circles out in parallel with the point dispersion.
+    svg.selectAll('.packed-circles circle')
+        .transition()
+        .duration(animationProperties.duration)
+        .attr('r', 0)
+        // .attr('fill-opacity', 0)
+        .remove();
+
+    const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(8);
+
+    const pointsLayer = svg.append('g')
+        .attr('class', 'points')
+        .attr('fill-opacity', 1);
+
+    const points = pointsLayer.selectAll('path')
+        .data(scatterData)
+        .join('path')
+        .attr('d', symbolGenerator)
+        .attr('transform', d => `translate(${d.packedX},${d.packedY})`)
+        .attr('fill', d => colorScale(d.taxon_category_name))
+        .attr('opacity', 0);
+
+    // // Attach tooltip listeners before transitioning
+    // attachTooltip(points);
+
+    // Transition each point from its packed centroid to its original scatter location
+    points.transition()
+        .duration(animationProperties.duration)
+        .attr('transform', d => `translate(${d.scatterX},${d.scatterY})`)
+        .attr('opacity', 1);
 
 // Renders food web layout as graph
 function renderPackedToGraph(sortOption) {
@@ -660,9 +725,7 @@ function renderGraphToPacked() {
                 .attr('r', d => d.r)
                 .attr('fill-opacity', 1);
         }
-
-         // Attach tooltip to all circles
-         attachTooltip(svg.selectAll('.food-web-circles circle'));
+}
 }
 
 // initialize

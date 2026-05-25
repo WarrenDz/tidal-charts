@@ -129,11 +129,13 @@ function redraw() {
     if (transition === 'web-packed') {
         // graph -> packed transition: preserve animation
         // svg.selectAll('*').remove();
+        console.log('Transitioning from web to packed');
         currentHash = newHash;
         renderGraphToPacked();
     } else if (transition === 'packed-web') {
         // packed -> graph transition: preserve animation
         // stop any current simulation and remove old graphical groups to avoid duplicates
+        console.log('Transitioning from packed to web');
         if (currentSimulation) {
             currentSimulation.stop();
             currentSimulation = null;
@@ -143,6 +145,7 @@ function redraw() {
         renderPackedToGraph();
     } else if (transition === 'packed-scatter') {
         // packed -> scatter: preserve animation
+        console.log('Transitioning from packed to scatter');
         currentHash = newHash;
         renderPackedToScatter();
     } else {
@@ -154,9 +157,18 @@ function redraw() {
         svg.selectAll('*').remove();
         currentHash = newHash;
 
-        if (newHash === 'scatter') renderScatter();
-        else if (newHash === 'packed') renderScatterToPacked();
-        else if (newHash === 'web') renderPackedToGraph();
+        if (newHash === 'scatter') {
+            console.log('Rendering scatter plot');
+            renderScatter();
+        }
+        else if (newHash === 'packed') {
+            console.log('Rendering packed circles');
+            renderScatterToPacked();
+        }
+        else if (newHash === 'web') {
+            console.log('Rendering food web graph');
+            renderPackedToGraph();
+        }
     }
 }
 

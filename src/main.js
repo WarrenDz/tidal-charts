@@ -59,8 +59,17 @@ const categoryColors = {
 // Each entry can be a string (image src) or an object { src, position, width, height }
 // position: 'right', 'left', 'upper-right', 'lower-left', 'center-top', etc.
 const speciesImages = {
-    'Ochre Sea Star': { src: 'assets/Ochre Sea Star.jpeg', position: 'upper-right', width: 40, height: 40 },
-    'Glaucous-winged Gull': { src: 'assets/Gull.jpg', position: 'upper-left', width: 40, height: 40 }
+    'Ochre Sea Star': { src: 'assets/Thumbnail - Sea Star.png', position: 'upper-right', width: 40, height: 40 },
+    'Glaucous-winged Gull': { src: 'assets/Thumbnail - Gull.png', position: 'upper-left', width: 40, height: 40 },
+    'California Mussel': { src: 'assets/Thumbnail - Mussel.png', position: 'right', width: 40, height: 40 },
+    'Giant Green Anemone': { src: 'assets/Thumbnail - Anenome.png', position: 'upper-left', width: 40, height: 40 },
+    'Pacific Hairy Hermit Crab': { src: 'assets/Thumbnail - Hermit Crab.png', position: 'upper-right', width: 40, height: 40 },
+    'Wooly Sculpin': { src: 'assets/Thumbnail - Sculpin.png', position: 'upper-left', width: 40, height: 40 },
+    'Pacific Purple Sea Urchin': { src: 'assets/Thumbnail - Urchin.png', position: 'upper-left', width: 40, height: 40 },
+    'Red Rock Crab': { src: 'assets/Thumbnail - Crab.png', position: 'upper-left', width: 55, height: 55 },
+    'Plate Limpet': { src: 'assets/Thumbnail - Limpit.png', position: 'upper-left', width: 40, height: 40 },
+    'Horned Nudibranch': { src: 'assets/Thumbnail - Nudibranch.png', position: 'center-top', width: 40, height: 40 },
+
 };
 
 // Load and process data
@@ -263,7 +272,7 @@ function getImageInfo(name) {
 // Compute image top-left x/y given node position, node radius, image size and desired position
 function computeImagePosition(node, imgW, imgH, position) {
     const pad = 3;
-    const r = node.r || 10;
+    const r = node.r || 5;
     const x = node.x || 0;
     const y = node.y || 0;
 

@@ -39,19 +39,56 @@ const animationProperties = {
     delay: 2500
 };
 
+// Configurable category field name from the input data
+const categoryField = 'taxon_class_name';
+
+function getCategory(d) {
+    if (!d) return '';
+    const value = d[categoryField];
+    return typeof value === 'string' ? value.trim() : (value != null ? String(value).trim() : '');
+}
+// Scatter plot diamond size
+const scatterDiamondSize = 10;
+
 // Taxon category colours
+const colors = {
+    'dark orange': '#FF5E35',
+    'light orange': '#FFA567',
+    'dark plum': '#765571',
+    'light plum': '#995E8F',
+    'dark blue': '#303B55',
+    'marine blue': '#3394A7',
+    'light blue': '#94C9DA',
+    'gray blue': '#8FA5B5',
+    'avocado green': '#688800',
+    'light green': '#97B359',
+    'light aqua': '#87B8A7',
+    'dark green': '#4B6B5F',
+    'warm yellow': '#D4A017',
+    'dusty rose': '#C47B8A',
+    'deep teal': '#2A6B6B',
+    'slate purple': '#5C4E7A',
+}
+
 const categoryColors = {
-    'Actinopterygii': '#66b3ff',
+    'Actinopterygii': colors['dark plum'],
+    'Asteroidea': colors['dark orange'],
+    'Echinoidea': colors['light plum'],
+    'Anthozoa': '#779e91',
+    'Bivalvia': colors['dark blue'],
+    'Gastropoda': colors['warm yellow'],
+    'Malacostraca': colors['light orange'],
+    'Phaeophyceae': colors['light green'],
+    'Hexanauplia': '#7e909d',
+    'Magnoliopsida': colors['light green'],
+    'Liliopsida': colors['light green'],
+    'Pinopsida': colors['light green'],
     'Amphibia': '#3377ff',
-    'Arachnida': '#000000',
-    'Aves': '#f2df61',
-    'Fungi': '#52cba3',
-    'Insecta': '#aa8631',
-    'Mammalia': '#bb5465',
-    'Mollusca': '#8a560e',
-    'Plantae': '#0f9954',
-    'Protozoa': '#a1e6e6',
-    'Reptilia': '#d9c194',
+    'Reptilia': colors['light green'],
+    'Aves': colors['marine blue'],
+    'Insecta': colors['avocado green'],
+    'Mammalia': colors['dusty rose'],
+    'Ascomycota': colors['gray blue'],
     'Other': '#d4d4d4'
 };
 
@@ -59,23 +96,28 @@ const categoryColors = {
 // Each entry can be a string (image src) or an object { src, position, width, height }
 // position: 'right', 'left', 'upper-right', 'lower-left', 'center-top', etc.
 const speciesImages = {
-    'Ochre Sea Star': { src: 'assets/Thumbnail - Sea Star.png', position: 'center-top', width: 60, height: 60 },
+    'Ochre Sea Star': { src: 'assets/Thumbnail - Sea Star.png', position: 'center-top', width: 60, height: 50 },
     'Glaucous-winged Gull': { src: 'assets/Thumbnail - Gull.png', position: 'center-top', width: 60, height: 60 },
     'California Mussel': { src: 'assets/Thumbnail - Mussel.png', position: 'center-top', width: 60, height: 60 },
     'Giant Green Anemone': { src: 'assets/Thumbnail - Anenome.png', position: 'center-top', width: 60, height: 60 },
     'Pacific Hairy Hermit Crab': { src: 'assets/Thumbnail - Hermit Crab.png', position: 'center-top', width: 60, height: 60 },
     'Wooly Sculpin': { src: 'assets/Thumbnail - Sculpin.png', position: 'center-top', width: 60, height: 60 },
     'Pacific Purple Sea Urchin': { src: 'assets/Thumbnail - Urchin.png', position: 'center-top', width: 60, height: 60 },
-    'Red Rock Crab': { src: 'assets/Thumbnail - Crab.png', position: 'center-top', width: 75, height: 75 },
+    'Red Rock Crab': { src: 'assets/Thumbnail - Crab.png', position: 'center-top', width: 80, height: 50 },
     'Plate Limpet': { src: 'assets/Thumbnail - Limpit.png', position: 'center-top', width: 60, height: 60 },
-    'Horned Nudibranch': { src: 'assets/Thumbnail - Nudibranch.png', position: 'center-top', width: 60, height: 60 },
+    'Horned Nudibranch': { src: 'assets/Thumbnail - Nudibranch.png', position: 'center-top', width: 60, height: 40 },
 
 };
 
 // Load and process data
 async function loadData() {
     data = await d3.csv('assets/iNat_TidalSample.csv');
-    categories = [...new Set(data.map(d => d.taxon_category_name).filter(c => c))];
+    data.forEach(d => {
+        if (typeof d[categoryField] === 'string') {
+            d[categoryField] = d[categoryField].trim();
+        }
+    });
+    categories = [...new Set(data.map(d => getCategory(d)).filter(c => c))];
 
     console.log('Categories:', categories);
     console.log('Data sample:', data.slice(0, 5));
@@ -173,7 +215,7 @@ function redraw() {
 function createColorScale() {
     return d3.scaleOrdinal()
         .domain(categories)
-        .range(categories.map(c => categoryColors[c] || '#999'));
+        .range(categories.map(c => categoryColors[c] || categoryColors['Other']));
 }
 
 function createPackedLayout(sortOption = null) {
@@ -182,7 +224,7 @@ function createPackedLayout(sortOption = null) {
         .map(([name, count]) => ({
             name,
             value: count,
-            category: data.find(d => d.common_name === name).taxon_category_name
+            category: getCategory(data.find(d => d.common_name === name))
         }));
 
     // Sort if option provided
@@ -241,7 +283,7 @@ function attachTooltip(selection) {
             const source = d.data ? d.data : d;
             const name = source.name || source.id || 'Unknown';
             const count = source.value || source.count || 'N/A';
-            const category = source.category || source.taxon_category_name || 'Other';
+            const category = source.category || getCategory(source) || 'Other';
             const tooltipText = `<strong>${name}</strong><br/>Count: ${count}<br/>Category: ${category}`;
             tooltip
                 .html(tooltipText)
@@ -271,8 +313,8 @@ function getImageInfo(name) {
 
 // Compute image top-left x/y given node position, node radius, image size and desired position
 function computeImagePosition(node, imgW, imgH, position) {
-    const pad = 3;
-    const r = node.r || 5;
+    const pad = 5;
+    const r = node.r || 4;
     const x = node.x || 0;
     const y = node.y || 0;
 
@@ -320,7 +362,7 @@ function renderScatter() {
     const colorScale = createColorScale();
 
     // Add a layer of diamonds
-    const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(8);
+    const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(scatterDiamondSize);
 
     svg.append('g')
         .attr('class', 'points')
@@ -330,7 +372,7 @@ function renderScatter() {
         .join('path')
         .attr('transform', d => `translate(${x(+d.long)},${y(+d.lat)})`)
         .attr('d', symbolGenerator)
-        .attr('fill', d => colorScale(d.taxon_category_name))
+        .attr('fill', d => colorScale(getCategory(d)))
 }
 
 // Renders a scatter plot and then transitions points to packed circles
@@ -375,7 +417,7 @@ function renderScatterToPacked(sortOption) {
     });
 
     // Create diamond symbols
-    const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(8);
+    const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(scatterDiamondSize);
 
     // Render diamonds at original positions first
     svg.append('g')
@@ -386,10 +428,10 @@ function renderScatterToPacked(sortOption) {
         .join('path')
         .attr('d', symbolGenerator)
         .attr('transform', d => `translate(${d.originalX},${d.originalY})`)
-        .attr('fill', d => colorScale(d.taxon_category_name))
+        .attr('fill', d => colorScale(getCategory(d)))
         .transition()
         .duration(animationProperties.duration)
-        .attr('d', d3.symbol().type(d3.symbolDiamond).size(2))
+        .attr('d', symbolGenerator)
         .attr('transform', d => `translate(${d.sortedX},${d.sortedY})`)
         .remove();
 
@@ -448,7 +490,7 @@ function renderPackedToScatter() {
         // .attr('fill-opacity', 0)
         .remove();
 
-    const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(8);
+    const symbolGenerator = d3.symbol().type(d3.symbolDiamond).size(scatterDiamondSize);
 
     const pointsLayer = svg.append('g')
         .attr('class', 'points')
@@ -459,7 +501,7 @@ function renderPackedToScatter() {
         .join('path')
         .attr('d', symbolGenerator)
         .attr('transform', d => `translate(${d.packedX},${d.packedY})`)
-        .attr('fill', d => colorScale(d.taxon_category_name))
+        .attr('fill', d => colorScale(getCategory(d)))
         .attr('opacity', 0);
 
     // // Attach tooltip listeners before transitioning
@@ -509,7 +551,7 @@ function renderPackedToGraph(sortOption) {
         .transition()
         .delay(animationProperties.duration / 2)
         .duration(animationProperties.duration)
-        .attr('r', 10);
+        .attr('r', 8); // node radius for graph layout
 
     const links = links_data.map(d => ({ ...d }));
     const nodes = nodes_data.map(d => ({ ...d }));
@@ -699,6 +741,15 @@ function renderGraphToPacked() {
             .attr('opacity', 0)
             .remove();
 
+        // Reset any click highlight state from graph mode and remove click handlers.
+        svg.selectAll('.food-web-circles circle')
+            .on('click', null)
+            .attr('fill-opacity', 1)
+            .attr('stroke', 'none')
+            .attr('stroke-width', 0);
+        svg.selectAll('.food-web-images').attr('opacity', 1);
+        svg.on('click', null);
+
         // Transition circles back to packed positions
         const packed = createPackedLayout();
         const packedMap = new Map(
@@ -706,6 +757,7 @@ function renderGraphToPacked() {
         );
 
         svg.selectAll('.food-web-circles circle')
+            .classed('packed-circles', true)
             .transition()
             .duration(animationProperties.duration)
             .attr('cx', d => packedMap.get(d.data.name)?.x ?? d.x)
@@ -726,6 +778,7 @@ function renderGraphToPacked() {
                 .selectAll('circle')
                 .data(excludedData, d => d.data.name)
                 .join('circle')
+                .attr('class', 'packed-circles')
                 .attr('cx', d => d.x)
                 .attr('cy', d => d.y)
                 .attr('r', 0)
@@ -736,6 +789,8 @@ function renderGraphToPacked() {
                 .attr('r', d => d.r)
                 .attr('fill-opacity', 1);
         }
+        // Attach tooltip to circles
+        attachTooltip(svg.selectAll('circle.packed-circles'));
 }
 
 

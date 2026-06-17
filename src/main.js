@@ -672,10 +672,11 @@ function renderPackedToGraph(sortOption) {
         });
 
         const simulation = d3.forceSimulation(nodes)
+        // https://www.react-graph-gallery.com/network-chart
             .force('link', d3.forceLink(links).id(d => d.common_name).distance(100))
             .force('charge', d3.forceManyBody().strength(-75))
             .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('collide', d3.forceCollide(d => d.r + 5))
+            .force('collide', d3.forceCollide(d => d.r + 250))
             .alpha(0.5) // "energy" of the simulation - start high for more movement
             .alphaDecay(0.5) // lower decay longer animation - slower to settle
             .velocityDecay(0.5) // friction - lower nodes move more, higher movement damps faster

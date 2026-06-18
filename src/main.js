@@ -17,8 +17,8 @@ let graphRunId = 0;
 // Configuration
 // Chart coordiantes
 const chartCoordinates = {
-    xMin: -123.025, xMax: -122.78,
-    yMin: 37.96, yMax: 38.07,
+    xMin: -123.08, xMax: -122.745,
+    yMin: 37.96, yMax: 38.11,
     centroid: { x: -122.9, y: 38.01 }  // center of your data space
 };
 
@@ -48,7 +48,7 @@ function getCategory(d) {
     return typeof value === 'string' ? value.trim() : (value != null ? String(value).trim() : '');
 }
 // Scatter plot diamond size
-const scatterDiamondSize = 10;
+const scatterDiamondSize = 15;
 
 // Taxon category colours
 const colors = {

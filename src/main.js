@@ -13,6 +13,12 @@ let height = 500;
 let currentSimulation = null;
 const chartDiv = document.getElementById('chart');
 let graphRunId = 0;
+let transitionQueue = Promise.resolve();
+
+function runChartTransition(fn) {
+    transitionQueue = transitionQueue.then(() => Promise.resolve(fn())).catch(() => { });
+    return transitionQueue;
+}
 
 // Configuration
 // Chart coordiantes
@@ -89,7 +95,7 @@ const categoryColors = {
     'Insecta': colors['avocado green'],
     'Mammalia': colors['dusty rose'],
     'Ascomycota': colors['gray blue'],
-    'Other': '#d4d4d4'
+    'Other': '#C3BEB7'
 };
 
 // Species images configuration
@@ -177,38 +183,46 @@ function redraw() {
     // Determine transition type and render accordingly
     const transition = `${previousHash}-${newHash}`;
 
-    if (transition === 'web-packed') {
-        // graph -> packed transition: preserve animation
-        // svg.selectAll('*').remove();
-        currentHash = newHash;
-        renderGraphToPacked();
-    } else if (transition === 'packed-web') {
-        // packed -> graph transition: preserve animation
-        // stop any current simulation and remove old graphical groups to avoid duplicates
-        if (currentSimulation) {
-            currentSimulation.stop();
-            currentSimulation = null;
+    runChartTransition(() => {
+        if (transition === 'web-packed') {
+            // graph -> packed transition: preserve animation
+            currentHash = newHash;
+            console.log('Transition:', transition);
+            return renderGraphToPacked();
+        } else if (transition === 'packed-web') {
+            // packed -> graph transition: preserve animation
+            if (currentSimulation) {
+                currentSimulation.stop();
+                currentSimulation = null;
+            }
+            svg.selectAll('*').remove();
+            currentHash = newHash;
+            console.log('Transition:', transition);
+            return renderPackedToGraph();
+        } else if (transition === 'packed-scatter') {
+            // packed -> scatter: preserve animation
+            currentHash = newHash;
+            console.log('Transition:', transition);
+            return renderPackedToScatter();
+        } else {
+            // All other transitions: clear and render based on new hash
+            if (currentSimulation) {
+                currentSimulation.stop();
+                currentSimulation = null;
+            }
+            svg.selectAll('*').remove();
+            currentHash = newHash;
+            console.log('Transition:', transition);
+            if (newHash === 'scatter') {
+                renderScatter();
+            } else if (newHash === 'packed') {
+                renderScatterToPacked();
+            } else if (newHash === 'web') {
+                renderPackedToGraph();
+            }
+            return Promise.resolve();
         }
-        svg.selectAll('*').remove();
-        currentHash = newHash;
-        renderPackedToGraph();
-    } else if (transition === 'packed-scatter') {
-        // packed -> scatter: preserve animation
-        currentHash = newHash;
-        renderPackedToScatter();
-    } else {
-        // All other transitions: clear and render based on new hash
-        if (currentSimulation) {
-            currentSimulation.stop();
-            currentSimulation = null;
-        }
-        svg.selectAll('*').remove();
-        currentHash = newHash;
-
-        if (newHash === 'scatter') renderScatter();
-        else if (newHash === 'packed') renderScatterToPacked();
-        else if (newHash === 'web') renderPackedToGraph();
-    }
+    });
 }
 
 // Helper functions
@@ -433,7 +447,6 @@ function renderScatterToPacked(sortOption) {
         .duration(animationProperties.duration)
         .attr('d', symbolGenerator)
         .attr('transform', d => `translate(${d.sortedX},${d.sortedY})`)
-        .remove();
 
     // Render circles
     const circles = svg.append('g')
@@ -524,7 +537,7 @@ function renderPackedToGraph(sortOption) {
 
     // Render circles (on top of links)
     const circles = svg.append('g')
-        .attr('class', 'food-web-circles')
+        .attr('class', 'packed-circles')
         .selectAll('circle')
         .data(packed.leaves())
         .join('circle')
@@ -628,7 +641,7 @@ function renderPackedToGraph(sortOption) {
             })
             .attr('opacity', 1);
 
-        graphCircles.on('click', function(event, d) {
+        graphCircles.on('click', function (event, d) {
             event.stopPropagation();
             const selectedName = d.data.name;
             const neighbors = adjacency.get(selectedName) || new Set();
@@ -650,13 +663,13 @@ function renderPackedToGraph(sortOption) {
                     return sourceName === selectedName || targetName === selectedName ? 1 : 0.15;
                 });
 
-                // Dim or highlight images to match node selection
-                if (typeof images !== 'undefined') {
-                    images.attr('opacity', imgNode => imgNode.common_name === selectedName || neighbors.has(imgNode.common_name) ? 1 : 0.2);
-                }
+            // Dim or highlight images to match node selection
+            if (typeof images !== 'undefined') {
+                images.attr('opacity', imgNode => imgNode.common_name === selectedName || neighbors.has(imgNode.common_name) ? 1 : 0.2);
+            }
         });
 
-        svg.on('click', function(event) {
+        svg.on('click', function (event) {
             if (event.target === this || event.target.tagName === 'svg') {
                 graphCircles
                     .attr('fill-opacity', 1)
@@ -672,7 +685,7 @@ function renderPackedToGraph(sortOption) {
         });
 
         const simulation = d3.forceSimulation(nodes)
-        // https://www.react-graph-gallery.com/network-chart
+            // https://www.react-graph-gallery.com/network-chart
             .force('link', d3.forceLink(links).id(d => d.common_name).distance(100))
             .force('charge', d3.forceManyBody().strength(-75))
             .force('center', d3.forceCenter(width / 2, height / 2))
@@ -712,7 +725,7 @@ function renderPackedToGraph(sortOption) {
             }
         }
 
-        svg.select('.food-web-circles').raise(); // Ensure circles are on top of links
+        svg.select('.packed-circles').raise(); // Ensure circles are on top of links
     }
 
     graphTransition.end().then(startGraph);
@@ -728,70 +741,74 @@ function renderGraphToPacked() {
         currentSimulation.stop();
         currentSimulation = null;
     }
-        // Fade out and remove links
-        svg.select('.food-web-links')
+    // Fade out and remove links
+    svg.select('.food-web-links')
+        .transition()
+        .duration(animationProperties.duration)
+        .attr('opacity', 0)
+        .remove();
+
+    // Fade out and remove images
+    svg.select('.food-web-images')
+        .transition()
+        .duration(animationProperties.duration)
+        .attr('opacity', 0)
+        .remove();
+
+    // Reset any click highlight state from graph mode and remove click handlers.
+    svg.selectAll('.packed-circles circle')
+        .on('click', null)
+        .attr('fill-opacity', 1)
+        .attr('stroke', 'none')
+        .attr('stroke-width', 0);
+    svg.selectAll('.food-web-images').attr('opacity', 1);
+    svg.on('click', null);
+
+    // Transition circles back to packed positions
+    const packed = createPackedLayout();
+    const packedMap = new Map(
+        packed.leaves().map(leaf => [leaf.data.name, { x: leaf.x, y: leaf.y, r: leaf.r }])
+    );
+
+    const packedCircleLayer = svg.select('.packed-circles');
+    const packedTransition = packedCircleLayer
+        .selectAll('circle')
+        .transition()
+        .duration(animationProperties.duration)
+        .attr('cx', d => packedMap.get(d.data.name)?.x ?? d.x)
+        .attr('cy', d => packedMap.get(d.data.name)?.y ?? d.y)
+        .attr('r', d => packedMap.get(d.data.name)?.r ?? d.r);
+
+    // Add back circles that were not in the food web
+    const speciesInWeb = new Set(links_data.flatMap(d => [d.source, d.target]));
+    const allPackedSpecies = new Set(packed.leaves().map(d => d.data.name));
+    const excludedSpecies = Array.from(allPackedSpecies).filter(name => !speciesInWeb.has(name));
+
+    if (excludedSpecies.length > 0) {
+        const excludedData = excludedSpecies.map(name => {
+            return packed.leaves().find(d => d.data.name === name);
+        });
+
+        const excludedTransition = svg.append('g')
+            .selectAll('circle')
+            .data(excludedData, d => d.data.name)
+            .join('circle')
+            .attr('class', 'packed-circles')
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y)
+            .attr('r', 0)
+            .attr('fill', d => colorScale(d.data.category))
+            .attr('fill-opacity', 0)
             .transition()
             .duration(animationProperties.duration)
-            .attr('opacity', 0)
-            .remove();
+            .attr('r', d => d.r)
+            .attr('fill-opacity', 1);
 
-        // Fade out and remove images
-        svg.select('.food-web-images')
-            .transition()
-            .duration(animationProperties.duration)
-            .attr('opacity', 0)
-            .remove();
-
-        // Reset any click highlight state from graph mode and remove click handlers.
-        svg.selectAll('.food-web-circles circle')
-            .on('click', null)
-            .attr('fill-opacity', 1)
-            .attr('stroke', 'none')
-            .attr('stroke-width', 0);
-        svg.selectAll('.food-web-images').attr('opacity', 1);
-        svg.on('click', null);
-
-        // Transition circles back to packed positions
-        const packed = createPackedLayout();
-        const packedMap = new Map(
-            packed.leaves().map(leaf => [leaf.data.name, { x: leaf.x, y: leaf.y, r: leaf.r }])
-        );
-
-        svg.selectAll('.food-web-circles circle')
-            .classed('packed-circles', true)
-            .transition()
-            .duration(animationProperties.duration)
-            .attr('cx', d => packedMap.get(d.data.name)?.x ?? d.x)
-            .attr('cy', d => packedMap.get(d.data.name)?.y ?? d.y)
-            .attr('r', d => packedMap.get(d.data.name)?.r ?? d.r);
-        
-        // Add back circles that were not in the food web
-        const speciesInWeb = new Set(links_data.flatMap(d => [d.source, d.target]));
-        const allPackedSpecies = new Set(packed.leaves().map(d => d.data.name));
-        const excludedSpecies = Array.from(allPackedSpecies).filter(name => !speciesInWeb.has(name));
-
-        if (excludedSpecies.length > 0) {
-            const excludedData = excludedSpecies.map(name => {
-                return packed.leaves().find(d => d.data.name === name);
-            });
-
-            svg.append('g')
-                .selectAll('circle')
-                .data(excludedData, d => d.data.name)
-                .join('circle')
-                .attr('class', 'packed-circles')
-                .attr('cx', d => d.x)
-                .attr('cy', d => d.y)
-                .attr('r', 0)
-                .attr('fill', d => colorScale(d.data.category))
-                .attr('fill-opacity', 0)
-                .transition()
-                .duration(animationProperties.duration)
-                .attr('r', d => d.r)
-                .attr('fill-opacity', 1);
-        }
-        // Attach tooltip to circles
-        attachTooltip(svg.selectAll('circle.packed-circles'));
+        return Promise.all([packedTransition.end(), excludedTransition.end()]);
+    }
+    // Attach tooltip to circles
+    attachTooltip(svg.selectAll('circle.packed-circles'));
+    return packedTransition.end();
 }
 
 

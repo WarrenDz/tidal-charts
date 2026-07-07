@@ -447,6 +447,7 @@ function renderScatterToPacked(sortOption) {
         .duration(animationProperties.duration)
         .attr('d', symbolGenerator)
         .attr('transform', d => `translate(${d.sortedX},${d.sortedY})`)
+        .remove();
 
     // Render circles
     const circles = svg.append('g')
@@ -496,7 +497,7 @@ function renderPackedToScatter() {
 
     // Keep packed circles visible while we spawn points at their centroids,
     // then fade the packed circles out in parallel with the point dispersion.
-    svg.selectAll('.packed-circles circle')
+    svg.selectAll('.packed-circles circle, .excl-packed-circles circle')
         .transition()
         .duration(animationProperties.duration)
         .attr('r', 0)
@@ -790,6 +791,7 @@ function renderGraphToPacked() {
         });
 
         const excludedTransition = svg.append('g')
+            .attr('class', 'excl-packed-circles')
             .selectAll('circle')
             .data(excludedData, d => d.data.name)
             .join('circle')

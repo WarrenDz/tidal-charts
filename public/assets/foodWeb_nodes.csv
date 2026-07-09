@@ -1,41 +1,44 @@
 node,common_name,nodeTaxon,phylum,category,consumerType,class
-Pachygrapsus crassipes,Striped Shore Crab,Pachygrapsus crassipes,Arthropoda,true crab,predator,Malacostraca
-Semibalanus cariosus,Thatched Barnacle,Semibalanus cariosus,Arthropoda,barnacle,predator,Thecostraca
-Larus glaucescens,Glaucous-winged Gull,Larus glaucescens,Chordata,bird,predator,Aves
-Anthopleura xanthogrammica,Giant Green Anemone,Anthopleura xanthogrammica,Cnidaria,anemone,predator,Hexacorallia
-Lottia scutum,Plate Limpet,Lottia scutum,Mollusca,limpet,micropredator,Gastropoda
-Pollicipes polymerus,Goose Barnacle,Pollicipes polymerus,Arthropoda,barnacle,predator,Thecostraca
-Lottia gigantea,Owl Limpet,Lottia gigantea,Mollusca,limpet,micropredator,Gastropoda
-Canis latrans,Coyote,Canis latrans,Chordata,terrestrial mammal,predator,Mammalia
-Calidris mauri,Western Sandpiper,Calidris mauri,Chordata,bird,predator,Aves
-Mytilus californianus,California Mussel,Mytilus californianus,Mollusca,mussel,predator,Bivalvia
-Calliostoma canaliculatum,Channeled Topsnail,Calliostoma canaliculatum,Mollusca,snail,predator,Gastropoda
-Ceratostoma foliatum,Leafy Hornmouth,Ceratostoma foliatum,Mollusca,snail,non-feeding;predator,Gastropoda
-Pagurus hirsutiusculus,Pacific Hairy Hermit Crab,Pagurus hirsutiusculus,Arthropoda,hermit crab,scavenger,Malacostraca
-Clinocottus analis,Wooly Sculpin,Clinocottus analis,Chordata,fish,predator,Teleostei
-Nereis vexillosa,Pile Worm,Nereis vexillosa,Annelida,polychaete,predator,Polychaeta
-Balanus glandula,Pacific Barnacle,Balanus glandula,Arthropoda,barnacle,predator,Thecostraca
-Cucumaria miniata,Red Sea Cucumber,Cucumaria miniata,Echinodermata,cucumber,detritivore,Holothuroidea
-Nucella lamellosa,Wrinkled Purple Whelk,Nucella lamellosa,Mollusca,snail,predator,Gastropoda
-Pugettia producta,Northern Kelp Crab,Pugettia producta,Arthropoda,true crab,non-feeding;predator,Malacostraca
-Amphistichus koelzi,Calico Surfperch,Amphistichus koelzi,Chordata,fish,predator,Teleostei
-Cryptochiton stelleri,Gumboot Chiton,Cryptochiton stelleri,Mollusca,chiton,micropredator,Polyplacophora
+Clinocottus globiceps,Mosshead Sculpin,Clinocottus globiceps,Chordata,fish,predator,Teleostei
 Hermissenda crassicornis,Horned Nudibranch,Hermissenda crassicornis,Mollusca,nudibranch,predator,Gastropoda
-Pisaster ochraceus,Ochre Sea Star,Pisaster ochraceus,Echinodermata,sea star,predator,Asteroidea
+Canis latrans,Coyote,Canis latrans,Chordata,terrestrial mammal,predator,Mammalia
+Clinocottus analis,Wooly Sculpin,Clinocottus analis,Chordata,fish,predator,Teleostei
+Phyllospadix torreyi,Torrey's Surfgrass,Phyllospadix torreyi,,angiosperm,autotroph,Magnoliopsida
+Balanus glandula,Pacific Barnacle,Balanus glandula,Arthropoda,barnacle,predator,Thecostraca
+Hiatella arctica,Wrinkled Rock Borer,Hiatella arctica,Mollusca,boring clam,predator,Bivalvia
+Pagurus hirsutiusculus,Pacific Hairy Hermit Crab,Pagurus hirsutiusculus,Arthropoda,hermit crab,scavenger,Malacostraca
+Cryptochiton stelleri,Gumboot Chiton,Cryptochiton stelleri,Mollusca,chiton,micropredator,Polyplacophora
+Pachygrapsus crassipes,Striped Shore Crab,Pachygrapsus crassipes,Arthropoda,true crab,predator,Malacostraca
 Triakis semifasciata,Leopard Shark,Triakis semifasciata,Chordata,shark,predator,Elasmobranchii
-Enteroctopus dofleini,Giant Pacific Octopus,Enteroctopus dofleini,Mollusca,octopus,non-feeding;predator,Cephalopoda
-Ligia pallasii,Common Rock Louse,Ligia pallasii,Arthropoda,isopod,detritivore,Malacostraca
-Littorina scutulata,Checkered Periwinkle,Littorina scutulata,Mollusca,snail,micropredator,Gastropoda
-Anthopleura sola,Starburst Anemone,Anthopleura sola,Cnidaria,anemone,predator,Hexacorallia
+Calliostoma canaliculatum,Channeled Topsnail,Calliostoma canaliculatum,Mollusca,snail,predator,Gastropoda
+Melanitta perspicillata,Surf Scoter,Melanitta perspicillata,Chordata,bird,predator,Aves
+Amphistichus koelzi,Calico Surfperch,Amphistichus koelzi,Chordata,fish,predator,Teleostei
+Cucumaria miniata,Red Sea Cucumber,Cucumaria miniata,Echinodermata,cucumber,detritivore,Holothuroidea
+Mytilus californianus,California Mussel,Mytilus californianus,Mollusca,mussel,predator,Bivalvia
 Macrocystis pyrifera,Giant Kelp,Macrocystis pyrifera,Ochrophyta,brown algae,autotroph,Phaeophyceae
-Phyllospadix torreyi,Torrey's Surfgrass,Phyllospadix torreyi,nan,angiosperm,autotroph,Magnoliopsida
-Obelia dichotoma,Sea Thread Hydroid,Obelia dichotoma,Cnidaria,hydroid,predator,Hydrozoa
-Phragmatopoma californica,California Sandcastle Worm,Phragmatopoma californica,Annelida,polychaete,predator,Polychaeta
+Calidris mauri,Western Sandpiper,Calidris mauri,Chordata,bird,predator,Aves
+Ligia pallasii,Common Rock Louse,Ligia pallasii,Arthropoda,isopod,detritivore,Malacostraca
 Pelvetiopsis limitata,Little Rockweed,Pelvetiopsis limitata,Ochrophyta,brown algae,autotroph,Phaeophyceae
 Cancer productus,Red Rock Crab,Cancer productus,Arthropoda,true crab,predator,Malacostraca
-Nereocystis luetkeana,Bull Kelp,Nereocystis luetkeana,Ochrophyta,brown algae,autotroph,Phaeophyceae
+Littorina scutulata,Checkered Periwinkle,Littorina scutulata,Mollusca,snail,micropredator,Gastropoda
 Strongylocentrotus purpuratus,Pacific Purple Sea Urchin,Strongylocentrotus purpuratus,Echinodermata,urchin,micropredator,Echinoidea
-Clinocottus globiceps,Mosshead Sculpin,Clinocottus globiceps,Chordata,fish,predator,Teleostei
-Hiatella arctica,Wrinkled Rock Borer,Hiatella arctica,Mollusca,boring clam,predator,Bivalvia
-Porichthys notatus,Plainfin Midshipman,Porichthys notatus,Chordata,fish,non-feeding;predator,Teleostei
+Tegula funebralis,Black Tegula,Tegula funebralis,Mollusca,snail,micropredator,Gastropoda
+Obelia dichotoma,Sea Thread Hydroid,Obelia dichotoma,Cnidaria,hydroid,predator,Hydrozoa
+Ceratostoma foliatum,Leafy Hornmouth,Ceratostoma foliatum,Mollusca,snail,non-feeding;predator,Gastropoda
+Enteroctopus dofleini,Giant Pacific Octopus,Enteroctopus dofleini,Mollusca,octopus,non-feeding;predator,Cephalopoda
+Nucella lamellosa,Wrinkled Purple Whelk,Nucella lamellosa,Mollusca,snail,predator,Gastropoda
+Lottia gigantea,Owl Limpet,Lottia gigantea,Mollusca,limpet,micropredator,Gastropoda
+Nereocystis luetkeana,Bull Kelp,Nereocystis luetkeana,Ochrophyta,brown algae,autotroph,Phaeophyceae
+Anthopleura sola,Starburst Anemone,Anthopleura sola,Cnidaria,anemone,predator,Hexacorallia
+Nereis vexillosa,Pile Worm,Nereis vexillosa,Annelida,polychaete,predator,Polychaeta
+Anthopleura xanthogrammica,Giant Green Anemone,Anthopleura xanthogrammica,Cnidaria,anemone,predator,Hexacorallia
 Lottia digitalis,Fingered Limpet,Lottia digitalis,Mollusca,limpet,micropredator,Gastropoda
+Pisaster ochraceus,Ochre Sea Star,Pisaster ochraceus,Echinodermata,sea star,predator,Asteroidea
+Pollicipes polymerus,Goose Barnacle,Pollicipes polymerus,Arthropoda,barnacle,predator,Thecostraca
+Enhydra lutris,Southern Sea Otter,Enhydra lutris,Chordata,mammal,predator,Mammalia
+Semibalanus cariosus,Thatched Barnacle,Semibalanus cariosus,Arthropoda,barnacle,predator,Thecostraca
+Phragmatopoma californica,California Sandcastle Worm,Phragmatopoma californica,Annelida,polychaete,predator,Polychaeta
+Larus glaucescens,Glaucous-winged Gull,Larus glaucescens,Chordata,bird,predator,Aves
+Lottia scutum,Plate Limpet,Lottia scutum,Mollusca,limpet,micropredator,Gastropoda
+Pugettia producta,Northern Kelp Crab,Pugettia producta,Arthropoda,true crab,non-feeding;predator,Malacostraca
+Porichthys notatus,Plainfin Midshipman,Porichthys notatus,Chordata,fish,non-feeding;predator,Teleostei

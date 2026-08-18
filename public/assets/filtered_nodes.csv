@@ -1,0 +1,42 @@
+node,common_name,nodeTaxon,phylum,category,consumerType,class
+Lottia digitalis,Fingered Limpet,Lottia digitalis,Mollusca,limpet,micropredator,Gastropoda
+Pollicipes polymerus,Goose Barnacle,Pollicipes polymerus,Arthropoda,barnacle,predator,Thecostraca
+Pugettia producta,Northern Kelp Crab,Pugettia producta,Arthropoda,true crab,non-feeding;predator,Malacostraca
+Ceratostoma foliatum,Leafy Hornmouth,Ceratostoma foliatum,Mollusca,snail,non-feeding;predator,Gastropoda
+Strongylocentrotus purpuratus,Pacific Purple Sea Urchin,Strongylocentrotus purpuratus,Echinodermata,urchin,micropredator,Echinoidea
+Macrocystis pyrifera,Giant Kelp,Macrocystis pyrifera,Ochrophyta,brown algae,autotroph,Phaeophyceae
+Calidris mauri,Western Sandpiper,Calidris mauri,Chordata,bird,predator,Aves
+Cancer productus,Red Rock Crab,Cancer productus,Arthropoda,true crab,predator,Malacostraca
+Pagurus hirsutiusculus,Pacific Hairy Hermit Crab,Pagurus hirsutiusculus,Arthropoda,hermit crab,scavenger,Malacostraca
+Nereis vexillosa,Pile Worm,Nereis vexillosa,Annelida,polychaete,predator,Polychaeta
+Anthopleura sola,Starburst Anemone,Anthopleura sola,Cnidaria,anemone,predator,Hexacorallia
+Clinocottus analis,Wooly Sculpin,Clinocottus analis,Chordata,fish,predator,Teleostei
+Triakis semifasciata,Leopard Shark,Triakis semifasciata,Chordata,shark,predator,Elasmobranchii
+Melanitta perspicillata,Surf Scoter,Melanitta perspicillata,Chordata,bird,predator,Aves
+Cryptochiton stelleri,Gumboot Chiton,Cryptochiton stelleri,Mollusca,chiton,micropredator,Polyplacophora
+Enhydra lutris,Southern Sea Otter,Enhydra lutris,Chordata,mammal,predator,Mammalia
+Porichthys notatus,Plainfin Midshipman,Porichthys notatus,Chordata,fish,non-feeding;predator,Teleostei
+Semibalanus cariosus,Thatched Barnacle,Semibalanus cariosus,Arthropoda,barnacle,predator,Thecostraca
+Nereocystis luetkeana,Bull Kelp,Nereocystis luetkeana,Ochrophyta,brown algae,autotroph,Phaeophyceae
+Lottia gigantea,Owl Limpet,Lottia gigantea,Mollusca,limpet,micropredator,Gastropoda
+Calliostoma canaliculatum,Channeled Topsnail,Calliostoma canaliculatum,Mollusca,snail,predator,Gastropoda
+Larus glaucescens,Glaucous-winged Gull,Larus glaucescens,Chordata,bird,predator,Aves
+Hiatella arctica,Wrinkled Rock Borer,Hiatella arctica,Mollusca,boring clam,predator,Bivalvia
+Hermissenda crassicornis,Horned Nudibranch,Hermissenda crassicornis,Mollusca,nudibranch,predator,Gastropoda
+Pisaster ochraceus,Ochre Sea Star,Pisaster ochraceus,Echinodermata,sea star,predator,Asteroidea
+Cucumaria miniata,Red Sea Cucumber,Cucumaria miniata,Echinodermata,cucumber,detritivore,Holothuroidea
+Phyllospadix torreyi,Torrey's Surfgrass,Phyllospadix torreyi,,angiosperm,autotroph,Magnoliopsida
+Amphistichus koelzi,Calico Surfperch,Amphistichus koelzi,Chordata,fish,predator,Teleostei
+Tegula funebralis,Black Tegula,Tegula funebralis,Mollusca,snail,micropredator,Gastropoda
+Nucella lamellosa,Wrinkled Purple Whelk,Nucella lamellosa,Mollusca,snail,predator,Gastropoda
+Balanus glandula,Pacific Barnacle,Balanus glandula,Arthropoda,barnacle,predator,Thecostraca
+Pachygrapsus crassipes,Striped Shore Crab,Pachygrapsus crassipes,Arthropoda,true crab,predator,Malacostraca
+Anthopleura xanthogrammica,Giant Green Anemone,Anthopleura xanthogrammica,Cnidaria,anemone,predator,Hexacorallia
+Ligia pallasii,Common Rock Louse,Ligia pallasii,Arthropoda,isopod,detritivore,Malacostraca
+Canis latrans,Coyote,Canis latrans,Chordata,terrestrial mammal,predator,Mammalia
+Pelvetiopsis limitata,Little Rockweed,Pelvetiopsis limitata,Ochrophyta,brown algae,autotroph,Phaeophyceae
+Phragmatopoma californica,California Sandcastle Worm,Phragmatopoma californica,Annelida,polychaete,predator,Polychaeta
+Mytilus californianus,California Mussel,Mytilus californianus,Mollusca,mussel,predator,Bivalvia
+Littorina scutulata,Checkered Periwinkle,Littorina scutulata,Mollusca,snail,micropredator,Gastropoda
+Lottia scutum,Plate Limpet,Lottia scutum,Mollusca,limpet,micropredator,Gastropoda
+Clinocottus globiceps,Mosshead Sculpin,Clinocottus globiceps,Chordata,fish,predator,Teleostei
